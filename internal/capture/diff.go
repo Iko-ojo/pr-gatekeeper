@@ -44,10 +44,22 @@ func ParseDockerDiff(r io.Reader, workspace string) []string {
 	return paths
 }
 
-// isNoiseDir filters ephemeral system paths that every container touches and
-// that carry no signal about the change under review.
+// isNoiseDir filters paths that a normal build legitimately writes to and that
+// carry no signal about tampering: ephemeral system dirs and the build user's
+// HOME (where npm, pip, go, etc. keep their caches). Writes to genuinely
+// sensitive locations (/etc, /usr, /bin, ...) are still reported.
+//
+// This is an allow-list of expected write locations. A future version should
+// invert this to an explicit deny-list of sensitive system paths so that, e.g.,
+// a write to /root/.ssh/authorized_keys is caught while /root/.npm is not.
 func isNoiseDir(path string) bool {
-	noisy := []string{"/tmp", "/run", "/var/run", "/var/cache", "/var/log", "/proc", "/sys", "/dev", "/root/.cache", "/home"}
+	noisy := []string{
+		"/tmp", "/run", "/var/run", "/var/cache", "/var/log",
+		"/proc", "/sys", "/dev",
+		// Build-user HOME directories: package managers write caches, logs and
+		// state here on every run, so these are expected, not suspicious.
+		"/root", "/home",
+	}
 	for _, n := range noisy {
 		if path == n || strings.HasPrefix(path, n+"/") {
 			return true
