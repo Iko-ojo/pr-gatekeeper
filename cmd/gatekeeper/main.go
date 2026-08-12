@@ -106,7 +106,9 @@ func runCmd(args []string) int {
 	}
 
 	// 2. Static analysis over changed files (secret scan + IaC).
-	changed := static.ChangedFiles(absWorkspace, *baseRef)
+	// git reports paths relative to the repo root, so resolve them there and
+	// restrict to the files under the requested workspace subtree.
+	changed := changedInWorkspace(absWorkspace, *baseRef)
 	secretHits := capture.ScanFiles(absPaths(absWorkspace, changed))
 	findings = append(findings, capture.SecretFindings(secretHits)...)
 	bundle.Evidence.SecretFiles = uniqueFiles(secretHits)
@@ -237,6 +239,48 @@ func envBool(key string, fallback bool) bool {
 	default:
 		return fallback
 	}
+}
+
+// changedInWorkspace returns the changed files that live under absWorkspace,
+// expressed as paths relative to absWorkspace. git diff yields repo-root
+// relative paths, so we translate them to the workspace frame and drop
+// anything outside it.
+func changedInWorkspace(absWorkspace, baseRef string) []string {
+	root := static.RepoRoot(absWorkspace)
+	if root == "" {
+		root = absWorkspace
+	}
+	changed := static.ChangedFiles(root, baseRef)
+
+	// Resolve symlinks on both paths before comparing. Without this, macOS
+	// temp dirs (/var -> /private/var) and similar setups yield a bogus
+	// relative path and silently drop every changed file.
+	wsRel, err := filepath.Rel(resolveSymlinks(root), resolveSymlinks(absWorkspace))
+	if err != nil {
+		wsRel = "."
+	}
+
+	var out []string
+	for _, c := range changed {
+		if wsRel == "." {
+			out = append(out, c)
+			continue
+		}
+		prefix := wsRel + string(filepath.Separator)
+		if strings.HasPrefix(c, prefix) {
+			out = append(out, strings.TrimPrefix(c, prefix))
+		}
+	}
+	return out
+}
+
+// resolveSymlinks returns the fully-resolved path, falling back to the input
+// when resolution fails (e.g. the path does not exist yet).
+func resolveSymlinks(p string) string {
+	if resolved, err := filepath.EvalSymlinks(p); err == nil {
+		return resolved
+	}
+	return p
 }
 
 func absPaths(root string, rel []string) []string {
