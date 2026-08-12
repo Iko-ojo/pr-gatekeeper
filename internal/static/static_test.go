@@ -3,7 +3,7 @@ package static
 import (
 	"testing"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 func newTestAnalyzer(files map[string]string) *Analyzer {

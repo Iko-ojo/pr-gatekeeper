@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // EgressEntry is a single outbound connection attempt recorded by the sandbox

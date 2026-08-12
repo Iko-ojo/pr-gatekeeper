@@ -63,7 +63,7 @@ See [.github/workflows/gatekeeper.yml](.github/workflows/gatekeeper.yml):
 ```yaml
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }
-- uses: ikoojo/agent-pr-gatekeeper@v1
+- uses: Iko-ojo/pr-gatekeeper@v1
   with:
     config: gatekeeper.yaml
     workspace: .

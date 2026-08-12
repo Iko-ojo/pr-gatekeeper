@@ -20,8 +20,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/capture"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/config"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/capture"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/config"
 )
 
 // proxyPort is the port Squid listens on inside the sandbox network.

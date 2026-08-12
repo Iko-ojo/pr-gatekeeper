@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // Analyzer runs static checks over a working directory.

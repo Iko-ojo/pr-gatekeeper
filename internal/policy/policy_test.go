@@ -3,8 +3,8 @@ package policy
 import (
 	"testing"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/config"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/config"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 func TestEvaluateBlocksOnEnabledRule(t *testing.T) {

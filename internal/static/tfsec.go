@@ -3,7 +3,7 @@ package static
 import (
 	"encoding/json"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // tfsecReport is the subset of tfsec's JSON output we consume.

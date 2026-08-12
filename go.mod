@@ -1,4 +1,4 @@
-module github.com/ikoojo/agent-pr-gatekeeper
+module github.com/Iko-ojo/pr-gatekeeper
 
 go 1.25
 

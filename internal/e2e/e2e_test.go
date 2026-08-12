@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/capture"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/config"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/policy"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/report"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/static"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/capture"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/config"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/policy"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/report"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/static"
 )
 
 const cfgYAML = `

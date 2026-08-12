@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // Client talks to the GitHub REST API.

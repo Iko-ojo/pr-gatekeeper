@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // WorkspaceMount is the path inside the workload container where the PR

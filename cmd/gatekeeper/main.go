@@ -10,14 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/capture"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/config"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/github"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/policy"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/report"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/sandbox"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/static"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/capture"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/config"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/github"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/policy"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/report"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/sandbox"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/static"
 )
 
 // version is overridable at build time via -ldflags "-X main.version=...".
@@ -83,25 +83,25 @@ func runCmd(args []string) int {
 	bundle := report.Bundle{}
 
 	// 1. Sandbox execution (behavioural evidence).
-	if !*noSandbox {
-		if sandbox.Available() {
-			res, err := sandbox.NewRunner(cfg, absWorkspace).Run()
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "sandbox error:", err)
-			} else {
-				findings = append(findings, capture.EgressFindings(res.Egress)...)
-				findings = append(findings, capture.DiffFindings(res.OutsideWrites)...)
-				findings = append(findings, capture.SecretFindings(capture.ScanText("command-output", res.Output))...)
-				bundle.Egress = res.Egress
-				bundle.Evidence.DeniedHosts = deniedHosts(res.Egress)
-				bundle.Evidence.AllowedHosts = allowedHosts(res.Egress)
-				bundle.Evidence.OutsideWrites = res.OutsideWrites
-				for _, c := range res.Commands {
-					bundle.Commands = append(bundle.Commands, report.CommandResult{Name: c.Name, ExitCode: c.ExitCode})
-				}
-			}
+	if *noSandbox {
+		warn(&bundle, "Sandbox disabled via --no-sandbox: behavioural checks (egress, filesystem) were skipped; static analysis only.")
+	} else if !sandbox.Available() {
+		warn(&bundle, "Docker is unavailable on this runner, so the behavioural sandbox was skipped and only static analysis ran. Run on a runner with Docker to enforce egress and filesystem policies.")
+	} else {
+		res, err := sandbox.NewRunner(cfg, absWorkspace).Run()
+		if err != nil {
+			warn(&bundle, "Sandbox execution failed ("+err.Error()+"); static analysis results are shown but behavioural checks did not run.")
 		} else {
-			fmt.Fprintln(os.Stderr, "warning: docker unavailable, skipping sandbox (static-only run)")
+			findings = append(findings, capture.EgressFindings(res.Egress)...)
+			findings = append(findings, capture.DiffFindings(res.OutsideWrites)...)
+			findings = append(findings, capture.SecretFindings(capture.ScanText("command-output", res.Output))...)
+			bundle.Egress = res.Egress
+			bundle.Evidence.DeniedHosts = deniedHosts(res.Egress)
+			bundle.Evidence.AllowedHosts = allowedHosts(res.Egress)
+			bundle.Evidence.OutsideWrites = res.OutsideWrites
+			for _, c := range res.Commands {
+				bundle.Commands = append(bundle.Commands, report.CommandResult{Name: c.Name, ExitCode: c.ExitCode})
+			}
 		}
 	}
 
@@ -130,6 +130,16 @@ func runCmd(args []string) int {
 	}
 
 	return verdict.ExitCode()
+}
+
+// warn records an operational caveat on the bundle and, when running inside
+// GitHub Actions, emits a workflow warning annotation so it is not silent.
+func warn(bundle *report.Bundle, msg string) {
+	bundle.Notes = append(bundle.Notes, msg)
+	fmt.Fprintln(os.Stderr, "warning:", msg)
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		fmt.Printf("::warning title=Agent PR Gatekeeper::%s\n", msg)
+	}
 }
 
 func publish(verdict model.Verdict, md string) {

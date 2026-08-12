@@ -1,6 +1,6 @@
 name: "Agent PR Gatekeeper"
 description: "Run a PR in a network-restricted sandbox, evaluate it against policy, and post a merge verdict."
-author: "ikoojo"
+author: "Iko-ojo"
 branding:
   icon: "shield"
   color: "purple"
@@ -27,17 +27,30 @@ inputs:
     required: false
     default: ${{ github.token }}
 
+# A composite action (rather than a Docker container action) so the gatekeeper
+# binary runs directly on the runner and can reach the runner's Docker daemon.
+# GitHub does not mount the Docker socket into container actions, which would
+# force the sandbox to silently degrade to static-only.
 runs:
-  using: "docker"
-  image: "Dockerfile"
-  args:
-    - "run"
-    - "--config"
-    - ${{ inputs.config }}
-    - "--workspace"
-    - ${{ inputs.workspace }}
-    - "--base-ref"
-    - ${{ inputs.base-ref }}
-  env:
-    GITHUB_TOKEN: ${{ inputs.github-token }}
-    GATEKEEPER_NO_SANDBOX: ${{ inputs.no-sandbox }}
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.25"
+
+    - name: Build gatekeeper
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: go build -o "$RUNNER_TEMP/gatekeeper" ./cmd/gatekeeper
+
+    - name: Run gatekeeper
+      shell: bash
+      run: |
+        "$RUNNER_TEMP/gatekeeper" run \
+          --config "${{ inputs.config }}" \
+          --workspace "${{ inputs.workspace }}" \
+          --base-ref "${{ inputs.base-ref }}"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GATEKEEPER_NO_SANDBOX: ${{ inputs.no-sandbox }}

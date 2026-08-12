@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/capture"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/capture"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // Bundle is the complete, serializable record of a gatekeeper run.
@@ -18,6 +18,9 @@ type Bundle struct {
 	Evidence Evidence              `json:"evidence"`
 	Commands []CommandResult       `json:"commands,omitempty"`
 	Egress   []capture.EgressEntry `json:"egress,omitempty"`
+	// Notes carries operational caveats (e.g. sandbox skipped) that should be
+	// surfaced prominently rather than buried in logs.
+	Notes []string `json:"notes,omitempty"`
 }
 
 // Evidence holds the raw observations behind the findings.
@@ -46,6 +49,10 @@ func (b Bundle) Markdown() string {
 	sb.WriteString("## Agent PR Gatekeeper\n\n")
 	sb.WriteString(fmt.Sprintf("**Verdict:** %s  \n", verdictBadge(b.Verdict.Decision)))
 	sb.WriteString(fmt.Sprintf("**Profile:** `%s`\n\n", b.Verdict.Profile))
+
+	for _, note := range b.Notes {
+		sb.WriteString(fmt.Sprintf("> :warning: %s\n\n", note))
+	}
 
 	if len(b.Verdict.Findings) == 0 {
 		sb.WriteString("No policy violations detected. :white_check_mark:\n")

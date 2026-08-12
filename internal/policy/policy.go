@@ -7,8 +7,8 @@ package policy
 import (
 	"strings"
 
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/config"
-	"github.com/ikoojo/agent-pr-gatekeeper/internal/model"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/config"
+	"github.com/Iko-ojo/pr-gatekeeper/internal/model"
 )
 
 // Evaluate filters and grades findings under the resolved profile, then rolls
