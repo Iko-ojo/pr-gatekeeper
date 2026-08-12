@@ -52,6 +52,22 @@ A /var/log/app.log`
 	}
 }
 
+func TestParseDockerDiffIgnoresHomeCaches(t *testing.T) {
+	// npm/pip/go write caches under the build user's HOME on every run; these
+	// must not be flagged, while genuine system tampering still is.
+	diff := `C /root
+A /root/.npm
+A /root/.npm/_logs/2026-08-12T19_24_16_265Z-debug-0.log
+A /root/.cache/go-build/ab/cdef
+A /home/builder/.config/thing
+C /etc/passwd`
+
+	paths := ParseDockerDiff(strings.NewReader(diff), WorkspaceMount)
+	if len(paths) != 1 || paths[0] != "/etc/passwd" {
+		t.Fatalf("expected only /etc/passwd flagged, got %v", paths)
+	}
+}
+
 func TestSecretScan(t *testing.T) {
 	text := "harmless line\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nanother line"
 	hits := ScanText("leak.env", text)
