@@ -1,0 +1,19 @@
+image: node:20
+commands:
+  build: npm ci
+  test: npm test
+network:
+  allow:
+    - github.com
+    - registry.npmjs.org
+policies:
+  default:
+    deny_network_outside_allowlist: true
+    deny_writes_outside_workspace: true
+    secret_scan: true
+    iac:
+      block_public_s3: true
+  agent:
+    inherit: default
+    fail_on:
+      - warn

@@ -1,0 +1,25 @@
+name: Agent PR Gatekeeper
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gatekeeper
+        uses: ./
+        with:
+          config: examples/node-app/gatekeeper.yaml
+          workspace: examples/node-app
+          base-ref: ${{ github.base_ref }}

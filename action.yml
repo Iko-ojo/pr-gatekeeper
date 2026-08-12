@@ -1,0 +1,43 @@
+name: "Agent PR Gatekeeper"
+description: "Run a PR in a network-restricted sandbox, evaluate it against policy, and post a merge verdict."
+author: "ikoojo"
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  config:
+    description: "Path to gatekeeper.yaml"
+    required: false
+    default: "gatekeeper.yaml"
+  workspace:
+    description: "Workspace directory to analyze"
+    required: false
+    default: "."
+  base-ref:
+    description: "Git base ref for the diff (defaults to the PR base branch)"
+    required: false
+    default: ""
+  no-sandbox:
+    description: "Skip Docker sandbox execution (static-only)"
+    required: false
+    default: "false"
+  github-token:
+    description: "Token used to publish the Check Run and PR comment"
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - "run"
+    - "--config"
+    - ${{ inputs.config }}
+    - "--workspace"
+    - ${{ inputs.workspace }}
+    - "--base-ref"
+    - ${{ inputs.base-ref }}
+  env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    GATEKEEPER_NO_SANDBOX: ${{ inputs.no-sandbox }}
